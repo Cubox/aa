@@ -1,0 +1,9 @@
+printi a_int = int
+
+readi = int
+
+three = 1 + 2
+
+addition a_int b_int = a + b
+
+main = printi (readi + readi + readi + three)
