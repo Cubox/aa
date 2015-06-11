@@ -123,7 +123,7 @@ func (a CallExprAST) Codegen() llvm.Value {
 func (a FunctionAST) Codegen() llvm.Value {
     log.Println("Generate function:", a.Name)
 
-    if call, ok := a.Body.(CallExprAST); ok { // We need to see if it's a prototype
+    if call, ok := a.Body.(CallExprAST); ok { // We need to see if it's an extern
         var t llvm.Type
         switch call.Callee {
         case "int":
@@ -174,6 +174,12 @@ func (a FunctionAST) Codegen() llvm.Value {
 
     f := llvm.AddFunction(currentModule, a.Name, fType)
 
+    if f.Name() != a.Name {
+        oldF := module.NamedFunction(a.Name)
+        f.EraseFromParentAsFunction()
+        f = oldF
+    }
+
     argsList = make(map[string]llvm.Value)
     for i := range a.Args {
         argsList[a.Args[i].Name] = f.Param(i)
@@ -194,6 +200,54 @@ func (a FunctionAST) Codegen() llvm.Value {
     }
 
     return f
+}
+
+func (a IfExprAST) Codegen() llvm.Value {
+    cond := a.Cond.Codegen()
+    var condV llvm.Value
+
+    if Type(cond) == llvm.IntegerTypeKind {
+        condV = builder.CreateICmp(llvm.IntNE, cond,
+            llvm.ConstInt(llvm.Int8Type(), uint64(0), true), "ifcond")
+    } else if Type(cond) == llvm.DoubleTypeKind {
+        condV = builder.CreateFCmp(llvm.FloatONE, cond,
+            llvm.ConstFloat(llvm.DoubleType(), 0), "ifcond")
+    } else {
+        return CodegenError("Using an if on an invalid type: " + cond.Type().String())
+    }
+
+    if dryRun {
+        return a.Then.Codegen()
+    }
+
+    curFunc := builder.GetInsertBlock().Parent()
+    thenBB := llvm.AddBasicBlock(curFunc, "then")
+    elseBB := llvm.AddBasicBlock(curFunc, "else")
+    mergeBB := llvm.AddBasicBlock(curFunc, "merge")
+
+    builder.CreateCondBr(condV, thenBB, elseBB)
+    builder.SetInsertPointAtEnd(thenBB)
+
+    thenV := a.Then.Codegen()
+
+    builder.CreateBr(mergeBB)
+    thenBB = builder.GetInsertBlock()
+
+    elseBB.MoveAfter(thenBB)
+    builder.SetInsertPointAtEnd(elseBB)
+
+    elseV := a.Else.Codegen()
+
+    builder.CreateBr(mergeBB)
+    elseBB = builder.GetInsertBlock()
+    mergeBB.MoveAfter(elseBB)
+
+    builder.SetInsertPointAtEnd(mergeBB)
+
+    phi := builder.CreatePHI(thenV.Type(), "iftmp")
+
+    phi.AddIncoming([]llvm.Value{thenV, elseV}, []llvm.BasicBlock{thenBB, elseBB})
+    return phi
 }
 
 func (a ErrorAST) Codegen() llvm.Value {

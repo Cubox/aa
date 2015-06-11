@@ -10,7 +10,7 @@ import "llvm.org/llvm/bindings/go/llvm"
 import "strings"
 
 var (
-    operators = map[rune]int{
+    operators = map[rune]int {
         '<': 10,
         '>': 10,
         '+': 20,
@@ -19,6 +19,10 @@ var (
         '/': 40,
         '%': 40,
     }
+)
+
+var (
+	keywords = make(map[string]func() ExprAST)
 )
 
 var (
@@ -71,8 +75,23 @@ type FunctionAST struct {
     Body ExprAST
 }
 
+type IfExprAST struct {
+	Cond, Then, Else ExprAST
+}
+
 type ErrorAST struct {
     err string
+}
+
+func init() {
+	keywords["if"] = parseIf
+	keywords["else"] = nil
+	keywords["then"] = nil
+}
+
+func isKeyword() bool {
+	_, ok := keywords[s.TokenText()]
+	return ok
 }
 
 func tokPrec() int {
@@ -135,15 +154,57 @@ func parseNumber(number string) ExprAST {
     return AST
 }
 
+func parseIf() ExprAST {
+	tok = s.Scan()
+
+	cond := parseExpression(true)
+	if isError(cond) {
+		return cond
+	}
+
+	log.Println("cond", cond)
+
+	if s.TokenText() != "then" {
+		return Error("Excpected then")
+	}
+	tok = s.Scan()
+
+	then := parseExpression(true)
+	if isError(then) {
+		return then
+	}
+
+	log.Println("then", then)
+
+	if s.TokenText() != "else" {
+		return Error("Excpected else")
+	}
+	tok = s.Scan()
+
+	elseB := parseExpression(true)
+	if isError(elseB) {
+		return elseB
+	}
+
+	log.Println("else", elseB)
+
+	return IfExprAST{Cond: cond, Then: then, Else: elseB}
+}
+
 func parseIdent(top bool) ExprAST {
     name := s.TokenText()
 
     log.Println("Parsed ident:", name, top)
 
+	if function, ok := keywords[name]; ok {
+		return function()
+	}
+
     var args []ExprAST
 
     tok = s.Scan()
-    for (tok < 0 || tok == '(') && tok != scan.EOF && top { // function call
+
+    for (tok < 0 || tok == '(') && tok != scan.EOF && top && !isKeyword() { // function call
         log.Println("Parsing an argument (function call):", s.TokenText())
         arg := parseExpression(false)
         if isError(arg) {
@@ -245,7 +306,7 @@ func parsePrimary(top bool) ExprAST {
     text := s.TokenText()
 
     log.Println("Parsing primary")
-    defer log.Println("Done parsing primary")
+    //defer log.Println("Done parsing primary")
 
     switch tok {
     case scan.Int, scan.Float:

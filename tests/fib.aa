@@ -1,0 +1,11 @@
+readi = int
+
+printi a_int = int
+
+fib i_int = if i < 2 then i else (fib i-1) + (fib i-2)
+
+fibLoop i_int max_int = int
+
+fibLoop i_int max_int = if i < max then fibLoop ((printi (fib i)) + i + 1) max else 0
+
+main = fibLoop 0 readi

@@ -30,7 +30,7 @@ func main() {
     var list []ExprAST
     buildAST(&list, file)
     for _, elem := range list {
-        //fmt.Println(elem)
+        log.Println(elem)
         elem.Codegen()
     }
 

@@ -37,3 +37,7 @@ func (a ErrorAST) String() string {
 func (a ArgumentExprAST) String() string {
     return fmt.Sprintf("Argument: %s", a.Name)
 }
+
+func (a IfExprAST) String() string {
+    return fmt.Sprintf("If: %v Then: %v Else: %v", a.Cond, a.Then, a.Else)
+}
