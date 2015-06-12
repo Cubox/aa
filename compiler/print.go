@@ -41,3 +41,7 @@ func (a ArgumentExprAST) String() string {
 func (a IfExprAST) String() string {
     return fmt.Sprintf("If: %v Then: %v Else: %v", a.Cond, a.Then, a.Else)
 }
+
+func (a BuiltinBody) String() string {
+    return ""
+}

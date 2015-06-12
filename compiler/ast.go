@@ -276,6 +276,14 @@ func parseIdent(top bool) ExprAST {
         return ArgumentExprAST{Name: name}
     } else { // Regular call
         log.Println("Regular call:", name)
+
+		builtin, ok := builtins[name]
+		if ok {
+			log.Println("Setting generate to:", name)
+			builtin.Generate = true
+			builtins[name] = builtin
+		}
+
         return CallExprAST{Callee: name, Args: args}
     }
 }

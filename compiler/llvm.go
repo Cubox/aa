@@ -29,6 +29,7 @@ func main() {
 
     var list []ExprAST
     buildAST(&list, file)
+    generateBuiltins()
     for _, elem := range list {
         log.Println(elem)
         elem.Codegen()

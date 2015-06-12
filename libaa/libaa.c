@@ -10,3 +10,14 @@ int readi() {
     scanf("%d", &i);
     return i;
 }
+
+double printd(double d) {
+    printf("%f\n", d);
+    return 0;
+}
+
+double readd() {
+    double d;
+    scanf("%lf", &d);
+    return d;
+}

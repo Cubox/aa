@@ -1,0 +1,5 @@
+readi = int
+
+printd i_float = float
+
+main = printd (itod (readi)) + 0.5
