@@ -1,4 +1,6 @@
 # aa
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCubox-%2Faa.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FCubox-%2Faa?ref=badge_shield)
+
 Small fun programming language, powered by LLVM
 
 ## How to compile and use?
@@ -13,3 +15,7 @@ Then clang test.s -c
 Then clang test.o libaa/libaa.c -o test
 
 Then ./test
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCubox-%2Faa.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FCubox-%2Faa?ref=badge_large)
